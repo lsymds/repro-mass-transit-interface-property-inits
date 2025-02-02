@@ -16,18 +16,33 @@ public class TestMessage : ITestMessage
     public int Prop { get; init; }
 }
 
-public class TestMessageConsumer : IConsumer<ITestMessage>
+public class TestInterfaceMessageConsumer : IConsumer<ITestMessage>
 {
-    private readonly ILogger<TestMessageConsumer> _logger;
+    private readonly ILogger<TestInterfaceMessageConsumer> _logger;
 
-    public TestMessageConsumer(ILogger<TestMessageConsumer> logger)
+    public TestInterfaceMessageConsumer(ILogger<TestInterfaceMessageConsumer> logger)
     {
         _logger = logger;
     }
 
     public Task Consume(ConsumeContext<ITestMessage> context)
     {
-        _logger.LogInformation("Consumed.");
+        _logger.LogInformation("Consumed from interface.");
+        return Task.CompletedTask;
+    }
+}
+public class TestConcreteMessageConsumer : IConsumer<TestMessage>
+{
+    private readonly ILogger<TestConcreteMessageConsumer> _logger;
+
+    public TestConcreteMessageConsumer(ILogger<TestConcreteMessageConsumer> logger)
+    {
+        _logger = logger;
+    }
+
+    public Task Consume(ConsumeContext<TestMessage> context)
+    {
+        _logger.LogInformation("Consumed from concrete.");
         return Task.CompletedTask;
     }
 }
@@ -51,6 +66,7 @@ public class TestPublisherService : IHostedService
             }
 
             await _publisher.Publish<ITestMessage>(new TestMessage { Prop = 25 }, cancellationToken);
+            await _publisher.Publish(new TestMessage { Prop = 45 }, cancellationToken);
             await Task.Delay(10000, cancellationToken);
         }
     }
